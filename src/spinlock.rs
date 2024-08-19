@@ -37,7 +37,7 @@ impl<T: ?Sized> SpinLock<T> {
     /// This returns a guard that provides access to the inner value and releases the lock on drop.
     pub fn lock(&self) -> Guard<'_, T> {
         loop {
-            if self.locked.swap(true, std::sync::atomic::Ordering::Acquire) == false {
+            if !self.locked.swap(true, std::sync::atomic::Ordering::Acquire) {
                 break Guard {
                     lock_var: &self.locked,
                     // SAFETY: We just locked the lock.

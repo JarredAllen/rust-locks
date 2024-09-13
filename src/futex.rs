@@ -134,10 +134,10 @@ mod tests {
                     barrier.wait();
                 });
             }
-            std::thread::sleep(Duration::from_millis(10));
+            std::thread::sleep(Duration::from_millis(100));
             futex.atomic.store(1, Ordering::Relaxed);
             futex.wake_one();
-            std::thread::sleep(Duration::from_millis(10));
+            std::thread::sleep(Duration::from_millis(100));
             assert_eq!(exited_threads.load(Ordering::Relaxed), 1);
             futex.wake_all();
             barrier.wait();

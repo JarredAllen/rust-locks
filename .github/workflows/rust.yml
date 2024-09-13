@@ -38,4 +38,5 @@ jobs:
     - name: Run tests (miri)
       run: |
         rustup toolchain add nightly
+        rustup component add miri
         cargo +nightly miri test

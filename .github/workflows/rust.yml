@@ -36,4 +36,6 @@ jobs:
       run: cargo test --verbose
 
     - name: Run tests (miri)
-      run: cargo +nightly miri test
+      run: |
+        rustup toolchain add nightly
+        cargo +nightly miri test

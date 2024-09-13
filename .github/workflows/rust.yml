@@ -1,0 +1,40 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # Uncomment if we ever take on enough dependencies for caching to be worth it.
+    # - name: Rust Cache
+    #   uses: Swatinem/rust-cache@v2.7.3
+
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        components: rustfmt
+
+    - name: Clippy
+      uses: auguwu/clippy-action@1.4.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        check-args: --all-features --all-targets
+        
+
+    - name: Rustfmt Check
+      uses: actions-rust-lang/rustfmt@v1
+
+    - name: Run tests
+      run: cargo test --verbose

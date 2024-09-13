@@ -18,10 +18,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # Uncomment if we ever take on enough dependencies for caching to be worth it.
-    # - name: Rust Cache
-    #   uses: Swatinem/rust-cache@v2.7.3
-
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         components: rustfmt
@@ -38,3 +34,9 @@ jobs:
 
     - name: Run tests
       run: cargo test --verbose
+
+    - name: Run tests (miri)
+      run: |
+        rustup toolchain add nightly
+        rustup +nightly component add miri
+        cargo +nightly miri test

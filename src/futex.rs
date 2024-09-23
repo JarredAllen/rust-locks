@@ -28,6 +28,10 @@ impl Futex {
     /// [`Self::wake_one`] or the like to wake the mutex. You should assume that spurious wakes are
     /// possible and check your condition in a loop.
     ///
+    /// This method synchronizes to return after all previous wakes on self. Specifically, if this
+    /// wake was not spurious and was caused by a call to [`Self::wake_one`] or [`Self::wake_all`],
+    /// then it synchronizes to return after that call.
+    ///
     /// Refer to the futex (2) man page for more details.
     pub fn wait(&self, expected: u32) {
         // SAFETY: Futex waits on an atomic are safe.
@@ -40,12 +44,17 @@ impl Futex {
                 std::ptr::null::<libc::timespec>(),
             );
         }
+        std::sync::atomic::fence(std::sync::atomic::Ordering::Acquire);
     }
 
     /// Call `FUTEX_WAKE` on `self` to wake one waiting thread.
     ///
+    /// This method synchronizes with any threads that were waiting on this futex, to happen before
+    /// the thread wakes up.
+    ///
     /// Refer to the futex (2) man page for more details.
     pub fn wake_one(&self) {
+        std::sync::atomic::fence(std::sync::atomic::Ordering::Release);
         // SAFETY: Waiters must handle spurious wakes, so this is safe to call.
         unsafe {
             libc::syscall(libc::SYS_futex, &self.atomic, libc::FUTEX_WAKE, 1);
@@ -56,8 +65,12 @@ impl Futex {
     ///
     /// This function returns the number of threads which were waiting on `self`.
     ///
+    /// This method synchronizes with any threads that were waiting on this futex, to happen before
+    /// the thread wakes up.
+    ///
     /// Refer to the futex (2) man page for more details.
     pub fn wake_all(&self) -> u32 {
+        std::sync::atomic::fence(std::sync::atomic::Ordering::Release);
         // SAFETY: Waiters must handle spurious wakes, so this is safe to call.
         unsafe {
             libc::syscall(
